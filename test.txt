@@ -1,0 +1,432 @@
+TEST_1:
+Assembly Code:
+
+branchBack: addi x1,x1,10
+addi x2,x2,20
+add x3,x1,x2
+sw x3,0(x0)
+lw x4,0(x0)
+addi x5,x5,10
+addi x6,x6,10
+beq x5,x6,branchBack
+
+Machine Code:
+
+00a08093
+01410113
+002081b3
+00302023
+00002203
+00a28293
+00a30313
+fe6282e3
+
+///////////////////////////////////////////////////////////////////
+TEST_2: If successful, it should write the value 25 to address 100
+Assembly Code:
+
+main:   addi x2,x0,5 
+        addi x3,x0,12 
+        addi x7,x3,-9 
+        or x4,x7,x2 
+        and x5,x3,x4 
+        add x5,x5,x4 
+        beq x5,x7,end 
+        slt x4,x3,x4 
+        beq x4,x0,around 
+        addi x5,x0,0 
+
+around: slt x4,x7,x2 
+        add x7,x4,x5 
+        sub x7,x7,x2 
+        sw x7,84(x3) 
+        lw x2,96(x0)
+        add x9,x2,x5 
+        jal x3,end 
+        addi x2,x0,1
+
+end:    add x2,x2,x9 
+        sw x2,0x20(x3) #[100] = 25 0221A023
+
+done:   beq x2,x2,done
+
+Machine Code:
+
+ 00500113
+ 00C00193
+ FF718393
+ 0023E233
+ 0041F2B3
+ 004282B3
+ 02728863
+ 0041A233
+ 00020463
+ 00000293
+ 0023A233
+ 005203B3
+ 402383B3
+ 0471AA23
+ 06002103
+ 005104B3
+ 008001EF
+ 00100113
+ 00910133
+ 0221A023
+ 00210063
+
+ ////////////////////////////////////////////////////////////////
+ TEST_3:
+ Assembly Code:
+
+00000293  # addi x5, x0, 0
+
+00500093  # addi x1, x0, 5
+00500113  # addi x2, x0, 5
+00208463  # beq  x1, x2, +16 -> BEQ_OK
+00000613  # addi x12,x0,0
+00c2a023  # sw   x12,0(x5)
+00c0006f  # jal  x0, NEXT_BNE
+00100613  # BEQ_OK: addi x12,x0,1
+00c2a023  # sw   x12,0(x5)
+
+00500093  # addi x1,x0,5
+00700113  # addi x2,x0,7
+00209463  # bne  x1,x2,+16 -> BNE_OK
+00000613  # addi x12,x0,0
+00c2a223  # sw   x12,4(x5)
+00c0006f  # jal  x0, NEXT_BLT
+00100613  # BNE_OK: addi x12,x0,1
+00c2a223  # sw   x12,4(x5)
+
+fff00093  # addi x1,x0,-1
+00000113  # addi x2,x0,0
+0020c463  # blt  x1,x2,+16 -> BLT_OK
+00000613  # addi x12,x0,0
+00c2a423  # sw   x12,8(x5)
+00c0006f  # jal  x0, NEXT_BGE
+00100613  # BLT_OK: addi x12,x0,1
+00c2a423  # sw   x12,8(x5)
+
+00300093  # addi x1,x0,3
+ffe00113  # addi x2,x0,-2
+0020d463  # bge  x1,x2,+16 -> BGE_OK
+00000613  # addi x12,x0,0
+00c2a623  # sw   x12,12(x5)
+00c0006f  # jal  x0, NEXT_BLTU
+00100613  # BGE_OK: addi x12,x0,1
+00c2a623  # sw   x12,12(x5)
+
+00100093  # addi x1,x0,1
+00200113  # addi x2,x0,2
+0020e463  # bltu x1,x2,+16 -> BLTU_OK
+00000613  # addi x12,x0,0
+00c2a823  # sw   x12,16(x5)
+00c0006f  # jal  x0, NEXT_BGEU
+00100613  # BLTU_OK: addi x12,x0,1
+00c2a823  # sw   x12,16(x5)
+
+fff00093  # addi x1,x0,-1
+00100113  # addi x2,x0,1
+0020f463  # bgeu x1,x2,+16 -> BGEU_OK
+00000613  # addi x12,x0,0
+00c2aa23  # sw   x12,20(x5)
+00c0006f  # jal  x0, DONE
+00100613  # BGEU_OK: addi x12,x0,1
+00c2aa23  # sw   x12,20(x5)
+
+0000006f  # DONE: jal x0, DONE (vòng lặp vô hạn)
+
+Machine Code:
+ 
+00000293 
+00500093 
+00500113  
+00208863  
+00000613 
+00c2a023 
+00c0006f  
+00100613 
+00c2a023 
+00500093 
+00700113  
+00209863  
+00000613 
+00c2a223  
+00c0006f  
+00100613  
+00c2a223  
+fff00093  
+00000113  
+0020c863  
+00000613 
+00c2a423 
+00c0006f  
+00100613  
+00c2a423 
+00300093  
+ffe00113  
+0020d863  
+00000613 
+00c2a623  
+00c0006f  
+00100613  
+00c2a623  
+00100093  
+0020e863  
+00000613 
+00c2a823  
+00c0006f  
+00100613  
+00c2a823 
+fff00093 
+00100113  
+0020f863 
+00000613  
+00c2aa23  
+00c0006f 
+00100613  
+00c2aa23  
+0000006f
+
+///////////////////////////////////////////////////////////////////////////////////
+TEST_4:
+PC  |instruction | Assembly Code
+-----------------------------------------
+0000:  21006093    # ori   x1,  x0, 0x210
+0004:  0210e113    # ori   x2,  x1, 0x021
+0008:  00111193    # slli  x3,  x2, 1
+000c:  5681f213    # andi  x4,  x3, 0x568
+0010:  68a06293    # ori   x5,  x0, 0x68a
+0014:  01606393    # ori   x7,  x0, 22
+0018:  007292b3    # sll   x5,  x5, x7
+001c:  01406393    # ori   x7,  x0, 20
+0020:  4072d333    # sra   x6,  x5, x7
+0024:  72306293    # ori   x5,  x0, 0x723
+0028:  0042c2b3    # xor   x5,  x5, x4
+002c:  00428333    # add   x6,  x5, x4
+0030:  7a432393    # slti  x7,  x6, 0x7a4
+0034:  7a332413    # slti  x8,  x6, 0x7a3
+0038:  00532433    # slt   x8,  x6, x5
+003c:  0062a433    # slt   x8,  x5, x6
+0040:  405304b3    # sub   x9,  x6, x5
+0044:  45b27537    # lui   x10, 0x45b27
+0048:  21c43597    # auipc x11, 0x21c43      # PC tại đây = 0x48 → x11 = 0x21c43048
+004c:  00b55c63    # bge   x10, x11, es_j2   # offset +24 (đến 0x64)
+0050:  45606613    # ori   x12, x0, 0x456
+0054:  2bc06693    # ori   x13, x0, 0x2bc
+0058:  00000013    # nop   (addi x0,x0,0)
+005c:  00000013    # nop
+0060:  00000013    # nop
+0064:  5ef06613    # ori   x12, x0, 0x5ef    # es_j2:
+0068:  12306693    # ori   x13, x0, 0x123
+006c:  00b6a123    # sw    x11, 2(x13)
+0070:  0026a703    # lw    x14, 2(x13)
+0074:  00c6a0a3    # sw    x12, 1(x13)
+0078:  0016a703    # lw    x14, 1(x13)
+007c:  000707b3    # add   x15, x14, x0
+0080:  0056a1a3    # sw    x5,  3(x13)
+0084:  0016a783    # lw    x15, 1(x13)
+0088:  00f388b3    # add   x17, x7, x15
+008c:  00b6a2a3    # sw    x11, 5(x13)
+0090:  0056a803    # lw    x16, 5(x13)
+
+21006093
+0210e113
+00111193
+5681f213
+68a06293
+01606393
+007292b3
+01406393
+4072d333
+72306293
+0042c2b3
+00428333
+7a432393
+7a332413
+00532433
+0062a433
+405304b3
+45b27537
+21c43597
+00b55c63
+45606613
+2bc06693
+00000013
+00000013
+00000013
+5ef06613
+12306693
+00b6a123
+0026a703
+00c6a0a3
+0016a703
+000707b3
+0056a1a3
+0016a783
+00f388b3
+00b6a2a3
+0056a803
+
+
+////////////////////////////////////////////////////////////////////////
+TEST_5: Bubble sort
+
+Assembly Code:
+
+    .text
+    .globl _start
+# x5=base(0), x6=n(=5), x10=i, x11=last=n-1, x12=j
+# x15=addr tmp, x16=arr[j], x17=arr[j+1]
+
+_start:
+    addi x5,  x0, 0          # base = 0
+    addi x6,  x0, 5          # n = 5
+    addi x10, x0, 0          # i = 0
+    addi x11, x6, -1         # last = n-1
+
+L_outer_check:
+    bge  x10, x11, done      # nếu i >= n-1 -> kết thúc
+    addi x12, x0, 0          # j = 0 (chỉ set khi chắc chắn còn vòng)
+
+L_inner_check:
+    add  x14, x10, x12       # t = i + j
+    bge  x14, x11, L_next_i  # nếu i+j >= n-1 -> sang vòng i kế tiếp
+
+    slli x15, x12, 2         # offset = j*4
+    add  x15, x5,  x15       # &arr[j]
+    lw   x16, 0(x15)         # a = arr[j]
+    lw   x17, 4(x15)         # b = arr[j+1]
+    bge  x17, x16, L_no_swap # nếu b >= a -> không đổi
+    sw   x17, 0(x15)         # swap a,b
+    sw   x16, 4(x15)
+L_no_swap:
+    addi x12, x12, 1         # j++
+    jal  x0,  L_inner_check
+
+L_next_i:
+    addi x10, x10, 1         # i++
+    jal  x0,  L_outer_check  # quay lại kiểm i
+
+done:
+    jal  x0,  done           # vòng lặp vô hạn để quan sát
+
+
+Machine Code:
+
+00000293
+00500313
+00000513
+fff30593
+04b55063
+00000613
+00c50733
+00b74463
+0280006f
+00261793
+00f287b3
+0007a803
+0047a883
+0108d663
+0117a023
+0107a223
+00160613
+fd5ff06f
+00150513
+fc5ff06f
+0000006f
+
+    .text
+    .globl _start
+_start:
+    # ==== CÀI ĐẶT CƠ BẢN ====
+    addi x5, x0, 0          # x5 = base address of array (arr)
+    addi x6, x0, 5          # x6 = n = 5
+
+    # ==== NẠP MẢNG arr = [8, 3, 7, 1, 5] ====
+addi x7, x0, 8
+sw   x7, 0(x5)
+
+addi x7, x0, 3
+sw   x7, 4(x5)
+
+addi x7, x0, 7
+sw   x7, 8(x5)
+
+addi x7, x0, 1
+sw   x7, 12(x5)
+
+addi x7, x0, 5
+sw   x7, 16(x5)
+
+
+    # ==== KHỞI TẠO BIẾN i = 0, last = n-1 ====
+    addi x10, x0, 0         # x10 = i = 0
+    addi x11, x6, -1        # x11 = last = n - 1
+
+# =============================
+#          BUBBLE SORT
+# =============================
+
+L_outer_check:
+    bge  x10, x11, done     # if i >= n-1 => done
+    addi x12, x0, 0         # j = 0
+
+L_inner_check:
+    add  x14, x10, x12      # x14 = i + j
+    bge  x14, x11, L_next_i # if i + j >= n-1 => next i
+
+    # offset = j * 4
+    slli x15, x12, 2        # x15 = j << 2
+    add  x15, x5, x15       # x15 = &arr[j]
+
+    lw   x16, 0(x15)        # a = arr[j]
+    lw   x17, 4(x15)        # b = arr[j+1]
+
+    bge  x17, x16, L_no_swap # if b >= a => no swap
+
+    # swap arr[j] <-> arr[j+1]
+    sw   x17, 0(x15)
+    sw   x16, 4(x15)
+
+L_no_swap:
+    addi x12, x12, 1        # j++
+    jal  x0,  L_inner_check # continue inner loop
+
+L_next_i:
+    addi x10, x10, 1        # i++
+    jal  x0,  L_outer_check # continue outer loop
+
+done:
+    jal  x0, done           # infinite loop for observation
+
+RAM[0]  = 32'h00000293; // addi x5, x0, 0
+RAM[1]  = 32'h00500313; // addi x6, x0, 5
+RAM[2]  = 32'h00800393; // addi x7, x0, 8
+RAM[3]  = 32'h00f2a023; // sw   x7, 0(x5)
+RAM[4]  = 32'h00300393; // addi x7, x0, 3
+RAM[5]  = 32'h00f2a223; // sw   x7, 4(x5)
+RAM[6]  = 32'h00700393; // addi x7, x0, 7
+RAM[7]  = 32'h00f2a423; // sw   x7, 8(x5)
+RAM[8]  = 32'h00100393; // addi x7, x0, 1
+RAM[9]  = 32'h00f2a623; // sw   x7, 12(x5)
+RAM[10] = 32'h00500393; // addi x7, x0, 5
+RAM[11] = 32'h00f2a823; // sw   x7, 16(x5)
+RAM[12] = 32'h00000513; // addi x10, x0, 0
+RAM[13] = 32'hfff30393; // addi x11, x6, -1
+RAM[14] = 32'h04b55263; // bge  x10, x11, done
+RAM[15] = 32'h00000613; // addi x12, x0, 0
+RAM[16] = 32'h00c506b3; // add  x13, x10, x12
+RAM[17] = 32'h04b6d463; // bge  x13, x11, L_next_i
+RAM[18] = 32'h00261693; // slli x13, x12, 2
+RAM[19] = 32'h00d287b3; // add  x15, x5, x13
+RAM[20] = 32'h0007a803; // lw   x16, 0(x15)
+RAM[21] = 32'h0047a883; // lw   x17, 4(x15)
+RAM[22] = 32'h0308d463; // bge  x17, x16, L_no_swap
+RAM[23] = 32'h0117a023; // sw   x17, 0(x15)
+RAM[24] = 32'h0107a223; // sw   x16, 4(x15)
+RAM[25] = 32'h00160613; // addi x12, x12, 1
+RAM[26] = 32'hfa1ff06f; // jal  x0, L_inner_check
+RAM[27] = 32'h00150513; // addi x10, x10, 1
+RAM[28] = 32'hfc9ff06f; // jal  x0, L_outer_check
+RAM[29] = 32'hfff0006f; // jal  x0, done

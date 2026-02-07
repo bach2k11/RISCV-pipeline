@@ -1,0 +1,21 @@
+QuestaSim-64 vlog 10.7c Compiler 2018.08 Aug 17 2018
+Start time: 23:46:05 on Aug 28,2025
+vlog -f filelist_com.f -f filelist_rtl.f "+cover=bcefs" -l ./log/vlogr.log 
+-- Compiling module alu
+-- Compiling module aludec
+-- Compiling module controller
+-- Compiling module datapath
+-- Compiling module dmem
+-- Compiling module extend
+-- Compiling module imem
+-- Compiling module maindec
+-- Compiling module regfile
+-- Compiling module riscv_single
+-- Compiling module top
+-- Scanning library directory '../../hdl'
+-- Compiling module branch
+
+Top level modules:
+	top
+End time: 23:46:05 on Aug 28,2025, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0

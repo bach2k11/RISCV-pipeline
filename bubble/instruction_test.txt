@@ -1,0 +1,100 @@
+# Bubble Sort 5 phần tử (ascending) — branchless, mỗi dòng 1 lệnh
+# A[0..4] = x6..x10; kết quả cũng ở x6..x10
+# Tạm dùng: x27=t, x28=m1, x29=mask
+addi x20, x0, 4      # base = 0x04 (để store kết quả)
+
+# Dữ liệu mẫu (đổi tùy ý)
+addi x6,  x0, 7
+addi x7,  x0, 3
+addi x8,  x0, 9
+addi x9,  x0, 1
+addi x10, x0, 5
+
+# ---- Macro CS(a,b) không branch (6 lệnh):
+# sub t,a,b ; slt m1,b,a ; sub mask,x0,m1 ; and t,t,mask ; sub a,a,t ; add b,b,t
+
+# Pass 1: (0,1)
+sub x27, x6,  x7
+slt x28, x7,  x6
+sub x29, x0,  x28
+and x27, x27, x29
+sub x6,  x6,  x27
+add x7,  x7,  x27
+# (1,2)
+sub x27, x7,  x8
+slt x28, x8,  x7
+sub x29, x0,  x28
+and x27, x27, x29
+sub x7,  x7,  x27
+add x8,  x8,  x27
+# (2,3)
+sub x27, x8,  x9
+slt x28, x9,  x8
+sub x29, x0,  x28
+and x27, x27, x29
+sub x8,  x8,  x27
+add x9,  x9,  x27
+# (3,4)
+sub x27, x9,  x10
+slt x28, x10, x9
+sub x29, x0,  x28
+and x27, x27, x29
+sub x9,  x9,  x27
+add x10, x10, x27
+
+# Pass 2: (0,1)
+sub x27, x6,  x7
+slt x28, x7,  x6
+sub x29, x0,  x28
+and x27, x27, x29
+sub x6,  x6,  x27
+add x7,  x7,  x27
+# (1,2)
+sub x27, x7,  x8
+slt x28, x8,  x7
+sub x29, x0,  x28
+and x27, x27, x29
+sub x7,  x7,  x27
+add x8,  x8,  x27
+# (2,3)
+sub x27, x8,  x9
+slt x28, x9,  x8
+sub x29, x0,  x28
+and x27, x27, x29
+sub x8,  x8,  x27
+add x9,  x9,  x27
+
+# Pass 3: (0,1)
+sub x27, x6,  x7
+slt x28, x7,  x6
+sub x29, x0,  x28
+and x27, x27, x29
+sub x6,  x6,  x27
+add x7,  x7,  x27
+# (1,2)
+sub x27, x7,  x8
+slt x28, x8,  x7
+sub x29, x0,  x28
+and x27, x27, x29
+sub x7,  x7,  x27
+add x8,  x8,  x27
+
+# Pass 4: (0,1)
+sub x27, x6,  x7
+slt x28, x7,  x6
+sub x29, x0,  x28
+and x27, x27, x29
+sub x6,  x6,  x27
+add x7,  x7,  x27
+
+# ---- Store kết quả về DMEM[0x04..0x14] (tuỳ chọn) ----
+sw   x6,  0(x20)
+sw   x7,  4(x20)
+sw   x8,  8(x20)
+sw   x9, 12(x20)
+sw   x10,16(x20)
+
+# Mirror & HALT
+addi x30, x10, 0
+addi x11, x0, 1
+sw   x11, 0(x0)
